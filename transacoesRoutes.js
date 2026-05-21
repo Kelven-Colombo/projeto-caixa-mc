@@ -1,0 +1,108 @@
+import express from "express";
+import { db } from "./database.js";
+
+const router = express.Router();
+
+router.get("/transacoes", async (req, res) => {
+  if (req.query.data) {
+    try {
+      const data = req.query.data;
+      const transacoes = await db.all(
+        `SELECT t.id, t.data, m.nome AS metodo, m.tipo, t.valor
+        FROM transacoes t JOIN metodos_pagamento m ON t.metodo_id = m.id
+        WHERE t.data = ?`,
+        data,
+      );
+      res
+        .status(200)
+        .json({ mensagem: `Consulta realizada com sucesso!`, transacoes });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ erro: "Erro ao buscar transações no banco." });
+    }
+  } else {
+    try {
+      // consulta e vincula as duas tabelas, trazendo o NOME do método de pagamento em vez do ID
+      const dados = await db.all(`
+            SELECT t.id, t.data, m.nome AS metodo, m.tipo, t.valor
+            FROM transacoes t JOIN metodos_pagamento m ON t.metodo_id = m.id
+            ORDER BY t.data DESC
+            `);
+      res.json(dados);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ erro: "Erro ao buscar transações no banco." });
+    }
+  }
+});
+
+router.post("/transacoes", async (req, res) => {
+  const { data, valores } = req.body;
+
+  try {
+    //Percorre cada método de pagamento enviado no JSON
+    for (const [nomeMetodo, valor] of Object.entries(valores)) {
+      //1º: busca o ID do método de pagamento baseado no nomeMetodo dentro do sub-objeto "valores"
+      const metodo = await db.get(
+        "SELECT id FROM metodos_pagamento WHERE nome = ?",
+        [nomeMetodo],
+      );
+
+      if (metodo) {
+        //2º: insere OU ATUALIZA a transação associando a data e o id que foi encontrado
+        await db.run(
+          "INSERT OR REPLACE INTO transacoes (data, metodo_id, valor) VALUES (?, ?, ?)",
+          [data, metodo.id, valor],
+        );
+      }
+    }
+    res
+      .status(201)
+      .json({ mensagem: "Fechamento de caixa salvo com sucesso!" });
+  } catch (erro) {
+    console.error(erro);
+    res.status(500).json({ erro: "Erro interno ao salvar as transações." });
+  }
+});
+
+router.put("/transacoes/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const { data, metodo_id, valor } = req.body;
+    await db.run(
+      `
+        UPDATE transacoes 
+        SET data = ?, metodo_id = ?, valor = ? 
+        WHERE id = ?`,
+      [data, metodo_id, valor, id],
+    );
+    const transacaoAtualizada = await db.get(
+      `
+        SELECT t.id, t.data, m.nome AS metodo, m.tipo, t.valor
+        FROM transacoes t JOIN metodos_pagamento m ON t.metodo_id = m.id
+        WHERE t.id = ?`,
+      id,
+    );
+    res.status(200).json({
+      mensagem: "Transação atualizada com sucesso!",
+      transacaoAtualizada,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ erro: "Erro ao atualizar transação no banco." });
+  }
+});
+
+router.delete("/transacoes/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    await db.run(`DELETE FROM transacoes WHERE id = ?`, id);
+    res.status(200).json({ mensagem: "Transação deletada com sucesso!" });
+  } catch (error) {
+    return res.status(500).json({ erro: error.message });
+  }
+});
+
+
+
+export default router;
