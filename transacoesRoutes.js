@@ -103,6 +103,27 @@ router.delete("/transacoes/:id", async (req, res) => {
   }
 });
 
+router.get("/transacoes/resumo", async (req, res) => {
+  try {
+    const { data } = req.query;
+    if (!data) {
+      return res.status(400).json({ erro: "A data é obrigatória." });
+    }
 
+    //sql
+    const resumo = await db.get(
+      `SELECT
+        SUM(CASE WHEN m.tipo = 'entrada' THEN t.valor ELSE 0 END) AS total_entradas,
+        SUM(CASE WHEN m.tipo = 'saida' THEN t.valor ELSE 0 END) AS total_saidas,
+        SUM(CASE WHEN m.nome IN ('Cédulas', 'Moedas') THEN t.valor ELSE 0 END) AS dinheiro_fisico
+      FROM transacoes t 
+      JOIN metodos_pagamento m ON t.metodo_id = m.id
+      WHERE t.data = ?`, data);
+      res.status(200).json({ mensagem: "Operação realizada com sucesso.", resumo });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ erro: "Erro ao gerar resumo do caixa." });
+  }
+});
 
 export default router;
