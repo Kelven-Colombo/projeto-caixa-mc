@@ -13,7 +13,8 @@ async function iniciarBanco() {
         CREATE TABLE IF NOT EXISTS metodos_pagamento (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             nome TEXT NOT NULL UNIQUE,
-            tipo TEXT NOT NULL
+            tipo TEXT NOT NULL,
+            ativo INTEGER NOT NULL DEFAULT 1
         );
     `);
 
@@ -49,4 +50,8 @@ async function iniciarBanco() {
   return db;
 }
 
-export { db, iniciarBanco };
+function getDb() {
+  return db;
+}
+
+export { getDb, iniciarBanco };
