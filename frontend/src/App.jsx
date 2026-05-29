@@ -1,28 +1,25 @@
+import { Routes, Route, Link } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import { useState, useEffect } from "react";
+import Fechamentos from "./components/Fechamentos";
+import Lancamento from "./components/Lancamento";
+import Configuracoes from "./components/Configuracoes";
+import NavBar from "./components/NavBar";
 
 function App() {
-  const [transacoes, setTransacoes] = useState([]);
-
-  useEffect(() => {
-    async function carregarTransacoes() {
-      //faz a requisição pro back-end
-      const resposta = await fetch("http://localhost:3000/transacoes");
-      //converte a resposta bruta pra JSON
-      const dados = await resposta.json();
-      //guarda os dados na memoria do useState
-      setTransacoes(dados);
-    }
-    //chama a função de atualiza a tela
-    carregarTransacoes();
-  }, []);
-
   return (
-    <div>
-      <h1>Caixa MC Serviços</h1>
-      <div>
-        {transacoes.map((t) => (<p key={t.id}>{t.metodo}: R$ {t.valor}</p>))}
+    <>
+      <NavBar />
+      
+      <div className="flex min-h-screen p-5 bg-slate-900 text-white">
+        <Routes>
+          <Route path="/" element={<Navigate to="/Fechamentos" />} />
+          <Route path="/Fechamentos" element={<Fechamentos />} />
+          <Route path="/Lancamento" element={<Lancamento />} />
+          <Route path="/Configuracoes" element={<Configuracoes />} />
+        </Routes>
       </div>
-    </div>
+    </>
   );
 }
 
