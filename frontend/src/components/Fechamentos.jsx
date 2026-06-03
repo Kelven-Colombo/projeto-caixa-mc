@@ -1,68 +1,97 @@
+import { useEffect, useState } from "react";
+import BarraFerramentas from "./BarraFerramentas.jsx";
+import CabecalhoTabela from "./CabecalhoTabela.jsx";
+import LinhaTabela from "./LinhaTabela.jsx";
+import Resumo from "./Resumo.jsx";
+
+// dados
 const Fechamentos = () => {
+  const mockLancamentos = [
+    { id: 1, data: "2026-05-01", entradas: 1500.0, saidas: 0, saldo: 1500.0 },
+    { id: 2, data: "2026-05-05", entradas: 0, saidas: 300.5, saldo: 1199.5 },
+    { id: 3, data: "2026-05-10", entradas: 200.0, saidas: 0, saldo: 1399.5 },
+  ];
+  // ESTADOS
+  // checkbox
+  const [selecionados, setSelecionados] = useState([]);
+
+  // date
+  const [dataInicial, setDataInicial] = useState("");
+  const [dataFinal, setDataFinal] = useState("");
+
+  //hook
+  useEffect(() => {
+    setSelecionados([]);
+  }, [dataInicial, dataFinal]);
+
+  // lógica de atualização da seção Resumo
+  const lancamentosFiltrados = mockLancamentos.filter((lancamento) => {
+    if (dataInicial && lancamento.data < dataInicial) return false;
+    if (dataFinal && lancamento.data > dataFinal) return false;
+    return true;
+  });
+
+  const listaResumo =
+    selecionados.length > 0
+      ? lancamentosFiltrados.filter((lancamento) =>
+          selecionados.includes(lancamento.id),
+        )
+      : lancamentosFiltrados;
+
+  let somaEntradas = listaResumo.reduce((soma, valorAtual) => {
+    return soma + valorAtual.entradas;
+  }, 0);
+
+  let somaSaidas = listaResumo.reduce((soma, valorAtual) => {
+    return soma + valorAtual.saidas;
+  }, 0);
+
+  let somaSaldo = listaResumo.reduce((soma, valorAtual) => {
+    return soma + valorAtual.saldo;
+  }, 0);
+
   return (
-    <div className="grid grid-cols-4 w-full gap-4 p-2">
+    <div className="grid w-full grid-cols-1 gap-4 p-2 lg:grid-cols-4">
       {/* lista */}
-      <div className="col-span-3 bg-gray-800 rounded-xl p-4">
+      <div className="rounded-xl bg-gray-800 p-4 lg:col-span-3">
         {/* Barra de ferramentas */}
-        <div className="flex justify-between items-center mb-4">
-          <div className="flex items-center gap-4">
-            <span className="font-bold">De:</span>
-            <input
-              type="date"
-              className="bg-gray-300 p-2 rounded-lg text-slate-900 outline-none"
-            />
-            <span className="font-bold">Até:</span>
-            <input
-              type="date"
-              className="bg-gray-300 p-2 rounded-lg text-slate-900 outline-none"
-            />
-          </div>
-          <button className="bg-blue-800 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded-lg transition-colors hover:cursor-pointer">Novo Lançamento</button>
-        </div>
+        <BarraFerramentas
+          dataInicial={dataInicial}
+          setDataInicial={setDataInicial}
+          dataFinal={dataFinal}
+          setDataFinal={setDataFinal}
+          selecionados={selecionados}
+        ></BarraFerramentas>
 
-        <table className="w-full text-left border-separate border-spacing-0">
-          <thead className="text-gray-200">
-            <tr>
-              <th className="bg-gray-700 p-3 rounded-tl-lg">
-                <input type="checkbox" />
-              </th>
-              <th className="bg-gray-700 p-3">Data</th>
-              <th className="bg-gray-700 p-3">Entradas</th>
-              <th className="bg-gray-700 p-3">Saídas</th>
-              <th className="bg-gray-700 p-3 rounded-tr-lg">Saldo</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr className="border-b hover:bg-gray-700 hover:cursor-pointer">
-              <td className="p-3">
-                {" "}
-                <input type="checkbox" />
-              </td>
-              <td className="p-3">xx/xx/xxxx</td>
-              <td className="p-3">R$ xx,xx</td>
-              <td className="p-3">R$ xx,xx</td>
-              <td className="p-3">R$ xx,xx</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      {/* resumo */}
-      <div className="flex flex-col col-span-1 bg-gray-800 rounded-xl p-4 gap-3">
-        <div className="font-bold mb-3 text-lg">Resumo</div>
-        <div className="flex justify-between">
-          <span className="font-semibold">Entradas</span>
-          <span>R$ xx,xx</span>
-        </div>
-        <div className="flex justify-between">
-          <span className="font-semibold">Saídas</span>
-          <span>R$ xx,xx</span>
-        </div>
-        <div className="flex justify-between">
-          <span className="font-semibold">Saldo</span>
-          <span>R$ xx,xx</span>
+        {/* Tabela Lista */}
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-max border-separate border-spacing-0 text-left">
+            <thead className="text-gray-200">
+              <CabecalhoTabela
+                lancamentosFiltrados={lancamentosFiltrados}
+                selecionados={selecionados}
+                setSelecionados={setSelecionados}
+              />
+            </thead>
+            <tbody>
+              {lancamentosFiltrados.map((lancamento) => (
+                <LinhaTabela
+                  key={lancamento.id}
+                  lancamento={lancamento}
+                  selecionados={selecionados}
+                  setSelecionados={setSelecionados}
+                />
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
+      {/* Resumo */}
+      <Resumo
+        somaEntradas={somaEntradas}
+        somaSaidas={somaSaidas}
+        somaSaldo={somaSaldo}
+      />{" "}
     </div>
   );
 };

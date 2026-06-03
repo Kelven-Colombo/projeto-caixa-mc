@@ -9,14 +9,14 @@ function App() {
   return (
     <>
       <NavBar />
-      
-      <div className="flex min-h-screen p-5 bg-slate-900 text-white">
+
+      <div className="flex min-h-screen bg-slate-900 p-5 text-white">
         <Routes>
           <Route path="/" element={<Navigate to="/Fechamentos" />} />
           <Route path="/Fechamentos" element={<Fechamentos />} />
           <Route path="/Lancamento" element={<Lancamento />} />
           <Route path="/Configuracoes" element={<Configuracoes />} />
-          <Route path="/*" element={<Navigate to="/Fechamentos" />}/>
+          <Route path="/*" element={<Navigate to="/Fechamentos" />} />
         </Routes>
       </div>
     </>
