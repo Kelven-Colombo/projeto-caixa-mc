@@ -68,6 +68,30 @@ router.get("/transacoes/resumo", async (req, res) => {
   }
 });
 
+router.get("/fechamentos", async (req, res) => {
+  try {
+    //sql
+    const fechamentos = await getDb().all(
+      `SELECT
+        t.data,
+        SUM(CASE WHEN m.tipo = 'entrada' THEN t.valor ELSE 0 END) AS total_entradas,
+        SUM(CASE WHEN m.tipo = 'saida' THEN t.valor ELSE 0 END) AS total_saidas,
+        SUM(CASE WHEN m.tipo = 'entrada' THEN t.valor ELSE 0 END) -
+        SUM(CASE WHEN m.tipo = 'saida' THEN t.valor ELSE 0 END) AS saldo
+      FROM transacoes t 
+      JOIN metodos_pagamento m ON t.metodo_id = m.id
+      group by t.data`
+    );
+    res
+      .status(200)
+      .json({ mensagem: "Operação realizada com sucesso.", fechamentos });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ erro: "Erro ao gerar fechamentos." });
+  }
+});
+
+
 router.get("/transacoes/:id", async (req, res) => {
   try {
     const id = req.params.id;

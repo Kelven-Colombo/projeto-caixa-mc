@@ -6,11 +6,18 @@ import Resumo from "./Resumo.jsx";
 
 // dados
 const Fechamentos = () => {
-  const mockLancamentos = [
-    { id: 1, data: "2026-05-01", entradas: 1500.0, saidas: 0, saldo: 1500.0 },
-    { id: 2, data: "2026-05-05", entradas: 0, saidas: 300.5, saldo: 1199.5 },
-    { id: 3, data: "2026-05-10", entradas: 200.0, saidas: 0, saldo: 1399.5 },
-  ];
+  //Cria o estado(memória) que vai guardar os dados que chegam da requisição
+  const [fechamentos, setFechamentos] = useState([]);
+  //Faz a requisição 
+  useEffect(() => {
+    async function carregarFechamentos() {
+      const resposta = await fetch("http://localhost:3000/fechamentos");
+      const dados = await resposta.json();
+      setFechamentos(dados.fechamentos);
+    }
+    carregarFechamentos();
+  }, []);
+
   // ESTADOS
   // checkbox
   const [selecionados, setSelecionados] = useState([]);
@@ -25,25 +32,25 @@ const Fechamentos = () => {
   }, [dataInicial, dataFinal]);
 
   // lógica de atualização da seção Resumo
-  const lancamentosFiltrados = mockLancamentos.filter((lancamento) => {
-    if (dataInicial && lancamento.data < dataInicial) return false;
-    if (dataFinal && lancamento.data > dataFinal) return false;
+  const fechamentosFiltrados = fechamentos.filter((fechamento) => {
+    if (dataInicial && fechamento.data < dataInicial) return false;
+    if (dataFinal && fechamento.data > dataFinal) return false;
     return true;
   });
 
   const listaResumo =
     selecionados.length > 0
-      ? lancamentosFiltrados.filter((lancamento) =>
-          selecionados.includes(lancamento.id),
+      ? fechamentosFiltrados.filter((fechamento) =>
+          selecionados.includes(fechamento.data),
         )
-      : lancamentosFiltrados;
+      : fechamentosFiltrados;
 
   let somaEntradas = listaResumo.reduce((soma, valorAtual) => {
-    return soma + valorAtual.entradas;
+    return soma + valorAtual.total_entradas;
   }, 0);
 
   let somaSaidas = listaResumo.reduce((soma, valorAtual) => {
-    return soma + valorAtual.saidas;
+    return soma + valorAtual.total_saidas;
   }, 0);
 
   let somaSaldo = listaResumo.reduce((soma, valorAtual) => {
@@ -68,16 +75,16 @@ const Fechamentos = () => {
           <table className="w-full min-w-max border-separate border-spacing-0 text-left">
             <thead className="text-gray-200">
               <CabecalhoTabela
-                lancamentosFiltrados={lancamentosFiltrados}
+                fechamentosFiltrados={fechamentosFiltrados}
                 selecionados={selecionados}
                 setSelecionados={setSelecionados}
               />
             </thead>
             <tbody>
-              {lancamentosFiltrados.map((lancamento) => (
+              {fechamentosFiltrados.map((fechamento) => (
                 <LinhaTabela
-                  key={lancamento.id}
-                  lancamento={lancamento}
+                  key={fechamento.data}
+                  fechamento={fechamento}
                   selecionados={selecionados}
                   setSelecionados={setSelecionados}
                 />

@@ -1,20 +1,20 @@
 import React from "react";
 
-const CabecalhoTabela = ({ lancamentosFiltrados, selecionados, setSelecionados }) => {
+const CabecalhoTabela = ({ fechamentosFiltrados, selecionados, setSelecionados }) => {
   return (
     <tr>
       <th className="w-12 rounded-tl-lg bg-gray-700 p-3">
         <input
           type="checkbox"
           checked={
-            lancamentosFiltrados.length === selecionados.length ? true : false
+            fechamentosFiltrados.length === selecionados.length ? true : false
           }
           onChange={() => {
-            if (lancamentosFiltrados.length === selecionados.length) {
+            if (fechamentosFiltrados.length === selecionados.length) {
               setSelecionados([]);
             } else {
               setSelecionados(
-                lancamentosFiltrados.map((lancamento) => lancamento.id),
+                fechamentosFiltrados.map((fechamento) => fechamento.data),
               );
             }
           }}
