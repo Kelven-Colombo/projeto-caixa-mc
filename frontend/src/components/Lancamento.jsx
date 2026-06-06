@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { formataData } from "../utils/formatadores";
 import BotaoAcao from "./BotaoAcao";
 import Resumo from "./Resumo";
@@ -47,8 +48,15 @@ const Lancamento = () => {
 
   const saldo = somaEntradas - somaSaidas;
 
+  const navigate = useNavigate();
+
   async function handleSalvar() {
     try {
+      const confirma = window.confirm(
+        "Tem certeza que deseja salvar o fechamento?",
+      );
+      if (!confirma) return;
+
       const resposta = await fetch("http://localhost:3000/transacoes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -61,6 +69,7 @@ const Lancamento = () => {
       }
 
       console.log("Salvo com sucesso!");
+      navigate("/fechamentos");
     } catch (error) {
       return console.error("Erro ao salvar transação", error);
     }
