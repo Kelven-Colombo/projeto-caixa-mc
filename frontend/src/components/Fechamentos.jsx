@@ -8,7 +8,7 @@ import Resumo from "./Resumo.jsx";
 const Fechamentos = () => {
   //Cria o estado(memória) que vai guardar os dados que chegam da requisição
   const [fechamentos, setFechamentos] = useState([]);
-  //Faz a requisição 
+  //Faz a requisição
   useEffect(() => {
     async function carregarFechamentos() {
       const resposta = await fetch("http://localhost:3000/fechamentos");

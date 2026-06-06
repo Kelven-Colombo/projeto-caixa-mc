@@ -1,7 +1,7 @@
 import React from "react";
-import { formataReal, formataData} from "../utils/formatadores.js"
+import { formataReal, formataData } from "../utils/formatadores.js";
 
-const Resumo = ({ somaEntradas, somaSaidas, somaSaldo }) => {
+const Resumo = ({ somaEntradas, somaSaidas, somaSaldo, ...props }) => {
   return (
     <aside className="flex flex-col gap-3 rounded-xl bg-gray-800 p-4 lg:col-span-1">
       <div className="mb-3 text-lg font-bold">Resumo</div>

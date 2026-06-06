@@ -160,7 +160,7 @@ router.post("/transacoes", async (req, res) => {
       );
 
       if (metodo) {
-        //2º: insere OU ATUALIZA a transação associando a data e o id que foi encontrado
+        //2º: INSERE OU ATUALIZA a transação associando a data e o id que foi encontrado
         await getDb().run(
           "INSERT OR REPLACE INTO transacoes (data, metodo_id, valor) VALUES (?, ?, ?)",
           [data, metodo.id, valor],
