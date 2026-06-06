@@ -1,14 +1,19 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { formataData } from "../utils/formatadores";
+import { useParams } from "react-router-dom";
 import BotaoAcao from "./BotaoAcao";
 import Resumo from "./Resumo";
 
 const Lancamento = () => {
-  //Cria o estado(memória) que vai guardar os dados que chegam da requisição
+  const dataParam = useParams().data;
+  const hoje = new Date().toISOString().split("T")[0];
+  const [data, setData] = useState(dataParam || hoje);
+
+  const navigate = useNavigate();
   const [tabelaMetodos, setTabelaMetodos] = useState([]);
 
-  //Faz a requisição
+  //Faz a requisição (GET)
   useEffect(() => {
     async function carregarTabelaMetodos() {
       const resposta = await fetch("http://localhost:3000/metodos");
@@ -23,16 +28,36 @@ const Lancamento = () => {
 
   // extrai apenas os nomes dos métodos e cria um novo objeto {nomeMetodo: valor}
   useEffect(() => {
-    setMetodos(
-      tabelaMetodos.reduce((acumulador, metodoAtual) => {
-        return { ...acumulador, [metodoAtual.nome]: 0 };
-      }, {}),
-    );
-  }, [tabelaMetodos]);
-  console.log(metodos);
+    //1: monta o objeto com todos os valores zerados (comportamento padrão)
+    const objetoZerado = tabelaMetodos.reduce((acumulador, metodoAtual) => {
+      return { ...acumulador, [metodoAtual.nome]: 0 };
+    }, {});
 
-  const hoje = new Date().toISOString().split("T")[0];
-  const [data, setData] = useState(hoje);
+    //2: SE veio data como parâmetro na URL, busca as transações daquele dia
+    if (dataParam) {
+      async function carregarTransacoesExistentes() {
+        const resposta = await fetch(
+          `http://localhost:3000/transacoes?data=${dataParam}`,
+        );
+        const dados = await resposta.json();
+
+        //3: sobrescreve o objetoZerado com os valores que vieram da data consultada
+        const objetoPreenchido = dados.transacoes.reduce(
+          (acumulador, transacao) => {
+            return { ...acumulador, [transacao.metodo]: transacao.valor };
+          },
+          objetoZerado,
+        );
+
+        setMetodos(objetoPreenchido);
+      }
+      carregarTransacoesExistentes();
+    } else {
+      setMetodos(objetoZerado);
+    }
+  }, [dataParam, tabelaMetodos]);
+
+  console.log(metodos);
 
   const somaEntradas = tabelaMetodos
     .filter((metodo) => metodo.tipo === "entrada") //retorna um novo array filtrado (Sem chaves ou entre (parênteses), o retorno é automático)
@@ -47,8 +72,6 @@ const Lancamento = () => {
     }, 0);
 
   const saldo = somaEntradas - somaSaidas;
-
-  const navigate = useNavigate();
 
   async function handleSalvar() {
     try {

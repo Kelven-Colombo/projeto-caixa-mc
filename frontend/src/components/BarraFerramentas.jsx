@@ -1,4 +1,5 @@
-import React from "react";
+import React, { use } from "react";
+import { useNavigate } from "react-router-dom";
 import BotaoAcao from "./BotaoAcao";
 
 const BarraFerramentas = ({
@@ -8,6 +9,9 @@ const BarraFerramentas = ({
   setDataFinal,
   selecionados,
 }) => {
+
+  const navigate = useNavigate();
+
   return (
     <nav className="mb-4 flex flex-col items-center justify-between gap-4 md:flex-row">
       <div className="flex items-center gap-4">
@@ -37,7 +41,7 @@ const BarraFerramentas = ({
           </button>
         </div>
       )}
-      <BotaoAcao>Novo Lançamento</BotaoAcao>
+      <BotaoAcao onClick={() => navigate("/lancamento")}>Novo Lançamento</BotaoAcao>
     </nav>
   );
 };

@@ -14,7 +14,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Navigate to="/Fechamentos" />} />
           <Route path="/Fechamentos" element={<Fechamentos />} />
-          <Route path="/Lancamento" element={<Lancamento />} />
+          <Route path="/Lancamento/:data?" element={<Lancamento />} />
           <Route path="/Configuracoes" element={<Configuracoes />} />
           <Route path="/*" element={<Navigate to="/Fechamentos" />} />
         </Routes>
