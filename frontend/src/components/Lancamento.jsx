@@ -60,33 +60,33 @@ const Lancamento = () => {
     if (tabelaMetodos.length === 0) return;
 
     const objetoZerado = tabelaMetodos.reduce((acumulador, metodoAtual) => {
-      const valorInicial =
-        metodoAtual.nome === "Fundo Caixa" ? fundoCaixa : 0;
+      const valorInicial = metodoAtual.nome === "Fundo Caixa" ? fundoCaixa : 0;
       return { ...acumulador, [metodoAtual.nome]: valorInicial };
     }, {});
 
-    if (dataParam) {
-      async function carregarTransacoesExistentes() {
-        const resposta = await fetch(
-          `http://localhost:3000/transacoes?data=${dataParam}`,
-        );
-        const dados = await resposta.json();
+    async function carregarTransacoesExistentes() {
+      const resposta = await fetch(
+        `http://localhost:3000/transacoes?data=${data}`,
+      );
+      const dados = await resposta.json();
 
-        const objetoPreenchido = dados.transacoes.reduce(
-          (acumulador, transacao) => {
-            return { ...acumulador, [transacao.metodo]: transacao.valor };
-          },
-          objetoZerado,
-        );
-
-        setMetodos(objetoPreenchido);
+      if (!dados.transacoes || dados.transacoes.length === 0) {
+        setMetodos(objetoZerado);
+        return;
       }
-      carregarTransacoesExistentes();
-    } else {
-      setMetodos(objetoZerado);
-    }
-  }, [dataParam, tabelaMetodos, fundoCaixa]);
 
+      const objetoPreenchido = dados.transacoes.reduce(
+        (acumulador, transacao) => {
+          return { ...acumulador, [transacao.metodo]: transacao.valor };
+        },
+        objetoZerado,
+      );
+
+      setMetodos(objetoPreenchido);
+    }
+    carregarTransacoesExistentes();
+  }, [data, tabelaMetodos, fundoCaixa]);
+  
   // ─── Cálculos do resumo ───────────────────────────────────────────────────
   const somaEntradas = tabelaMetodos
     .filter((m) => m.tipo === "entrada")
