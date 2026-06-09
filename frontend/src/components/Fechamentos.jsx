@@ -10,6 +10,7 @@ const Fechamentos = () => {
   const [selecionados, setSelecionados] = useState([]);
   const [dataInicial, setDataInicial] = useState("");
   const [dataFinal, setDataFinal] = useState("");
+  const [ordem, setOrdem] = useState("desc");
 
   // ─── Carregamento de dados ────────────────────────────────────────────────
   async function carregarFechamentos() {
@@ -51,18 +52,24 @@ const Fechamentos = () => {
     }
   }
 
-  // ─── Lógica de filtro e cálculos do resumo ────────────────────────────────
+  // ─── Lógica de filtro e ordenação ────────────────────────────────
   const fechamentosFiltrados = fechamentos.filter((fechamento) => {
     if (dataInicial && fechamento.data < dataInicial) return false;
     if (dataFinal && fechamento.data > dataFinal) return false;
     return true;
   });
 
+  const fechamentosOrdenados = [...fechamentosFiltrados].sort((a, b) => {
+    if (ordem === "desc") return b.data.localeCompare(a.data);
+    return a.data.localeCompare(b.data);
+  });
+
   const listaResumo =
     selecionados.length > 0
-      ? fechamentosFiltrados.filter((f) => selecionados.includes(f.data))
-      : fechamentosFiltrados;
+      ? fechamentosOrdenados.filter((f) => selecionados.includes(f.data))
+      : fechamentosOrdenados;
 
+  /// ─── Cálculos do resumo ────────────────────────────
   const somaEntradas = listaResumo.reduce(
     (soma, f) => soma + f.total_entradas,
     0,
@@ -82,6 +89,8 @@ const Fechamentos = () => {
           setDataFinal={setDataFinal}
           selecionados={selecionados}
           onExcluirSelecionados={handleExcluirSelecionados}
+          ordem={ordem}
+          setOrdem={setOrdem}
         />
 
         <div className="overflow-x-auto">
@@ -94,7 +103,7 @@ const Fechamentos = () => {
               />
             </thead>
             <tbody>
-              {fechamentosFiltrados.map((fechamento) => (
+              {fechamentosOrdenados.map((fechamento) => (
                 <LinhaTabela
                   key={fechamento.data}
                   fechamento={fechamento}

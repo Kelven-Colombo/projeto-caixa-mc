@@ -1,4 +1,4 @@
-import React, { use } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import BotaoAcao from "./BotaoAcao";
 
@@ -8,9 +8,10 @@ const BarraFerramentas = ({
   dataFinal,
   setDataFinal,
   selecionados,
-  onExcluirSelecionados
+  onExcluirSelecionados,
+  ordem,
+  setOrdem,
 }) => {
-
   const navigate = useNavigate();
 
   return (
@@ -31,6 +32,16 @@ const BarraFerramentas = ({
           onChange={(e) => setDataFinal(e.target.value)}
         />
       </div>
+
+      <div className="mb-2 flex justify-end">
+        <button
+          onClick={() => setOrdem(ordem === "desc" ? "asc" : "desc")}
+          className="flex cursor-pointer items-center gap-1 rounded-lg bg-gray-700 px-3 py-1 text-sm hover:bg-gray-600"
+        >
+          Data {ordem === "desc" ? "↓" : "↑"}
+        </button>
+      </div>
+
       {selecionados.length > 0 && (
         <div className="flex items-center gap-4">
           <span className="font-bold">Selecionados: {selecionados.length}</span>
@@ -42,7 +53,9 @@ const BarraFerramentas = ({
           </button>
         </div>
       )}
-      <BotaoAcao onClick={() => navigate("/lancamento")}>Novo Lançamento</BotaoAcao>
+      <BotaoAcao onClick={() => navigate("/lancamento")}>
+        Novo Lançamento
+      </BotaoAcao>
     </nav>
   );
 };
