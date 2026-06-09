@@ -91,6 +91,24 @@ router.post("/metodos", async (req, res) => {
   const { nome, tipo } = req.body;
 
   try {
+    // Verifica se o método já existe e está inativo
+    const existeInativo = await getDb().get(
+      "SELECT id FROM metodos_pagamento WHERE nome = ? AND ativo = 0",
+      [nome],
+    );
+
+    if (existeInativo) {
+      // Reativa em vez de criar novo
+      await getDb().run(
+        "UPDATE metodos_pagamento SET ativo = 1, tipo = ? WHERE id = ?",
+        [tipo, existeInativo.id],
+      );
+      return res
+        .status(200)
+        .json({ mensagem: "Método reativado com sucesso!" });
+    }
+    
+    // Adiciona novo método normalmente
     await getDb().run(
       "INSERT INTO metodos_pagamento (nome, tipo) VALUES (?, ?)",
       [nome, tipo],

@@ -6,6 +6,7 @@ import Resumo from "./Resumo.jsx";
 
 // dados
 const Fechamentos = () => {
+
   //Cria o estado(memória) que vai guardar os dados que chegam da requisição
   const [fechamentos, setFechamentos] = useState([]);
   //Faz a requisição

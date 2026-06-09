@@ -1,19 +1,27 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { formataData } from "../utils/formatadores";
-import { useParams } from "react-router-dom";
 import BotaoAcao from "./BotaoAcao";
 import Resumo from "./Resumo";
 
 const Lancamento = () => {
+  // ─── Navegação e parâmetro de rota ───────────────────────────────────────
+  const navigate = useNavigate();
   const dataParam = useParams().data;
+
+  // ─── Estados ─────────────────────────────────────────────────────────────
   const hoje = new Date().toISOString().split("T")[0];
   const [data, setData] = useState(dataParam || hoje);
-
-  const navigate = useNavigate();
   const [tabelaMetodos, setTabelaMetodos] = useState([]);
+  const [metodos, setMetodos] = useState({});
+  const [fundoCaixa, setFundoCaixa] = useState(0);
 
-  //Faz a requisição (GET)
+  // ─── Data anterior (para cálculo do fundo) ───────────────────────────────
+  const dataAnterior = new Date(data + "T00:00:00");
+  dataAnterior.setDate(dataAnterior.getDate() - 1);
+  const dataAnteriorFormatada = dataAnterior.toISOString().split("T")[0];
+
+  // ─── Efeito 1: carrega lista de métodos do banco ─────────────────────────
   useEffect(() => {
     async function carregarTabelaMetodos() {
       const resposta = await fetch("http://localhost:3000/metodos");
@@ -23,17 +31,40 @@ const Lancamento = () => {
     carregarTabelaMetodos();
   }, []);
 
-  //cria o estado para a versão condensada da tabelaMetodos
-  const [metodos, setMetodos] = useState({});
-
-  // extrai apenas os nomes dos métodos e cria um novo objeto {nomeMetodo: valor}
+  // ─── Efeito 2: calcula fundo de caixa do dia anterior ────────────────────
   useEffect(() => {
-    //1: monta o objeto com todos os valores zerados (comportamento padrão)
+    async function calcularFundo() {
+      const resposta = await fetch(
+        `http://localhost:3000/transacoes?data=${dataAnteriorFormatada}`,
+      );
+      const dados = await resposta.json();
+
+      if (!dados.transacoes || dados.transacoes.length === 0) {
+        setFundoCaixa(0);
+        return;
+      }
+
+      const fundo = dados.transacoes
+        .filter((t) => t.metodo === "Cédulas" || t.metodo === "Moedas")
+        .reduce((soma, t) => soma + t.valor, 0);
+
+      setFundoCaixa(fundo);
+    }
+    calcularFundo();
+  }, [data]);
+
+  // ─── Efeito 3: monta objeto de valores do formulário ─────────────────────
+  // Depende de tabelaMetodos e fundoCaixa — roda quando qualquer um muda.
+  // A guarda (length === 0) evita montar objeto vazio antes dos métodos chegarem.
+  useEffect(() => {
+    if (tabelaMetodos.length === 0) return;
+
     const objetoZerado = tabelaMetodos.reduce((acumulador, metodoAtual) => {
-      return { ...acumulador, [metodoAtual.nome]: 0 };
+      const valorInicial =
+        metodoAtual.nome === "Fundo Caixa" ? fundoCaixa : 0;
+      return { ...acumulador, [metodoAtual.nome]: valorInicial };
     }, {});
 
-    //2: SE veio data como parâmetro na URL, busca as transações daquele dia
     if (dataParam) {
       async function carregarTransacoesExistentes() {
         const resposta = await fetch(
@@ -41,7 +72,6 @@ const Lancamento = () => {
         );
         const dados = await resposta.json();
 
-        //3: sobrescreve o objetoZerado com os valores que vieram da data consultada
         const objetoPreenchido = dados.transacoes.reduce(
           (acumulador, transacao) => {
             return { ...acumulador, [transacao.metodo]: transacao.valor };
@@ -55,24 +85,21 @@ const Lancamento = () => {
     } else {
       setMetodos(objetoZerado);
     }
-  }, [dataParam, tabelaMetodos]);
+  }, [dataParam, tabelaMetodos, fundoCaixa]);
 
-  console.log(metodos);
-
+  // ─── Cálculos do resumo ───────────────────────────────────────────────────
   const somaEntradas = tabelaMetodos
-    .filter((metodo) => metodo.tipo === "entrada") //retorna um novo array filtrado (Sem chaves ou entre (parênteses), o retorno é automático)
-    .reduce((acumulador, metodoAtual) => {
-      return acumulador + (metodos[metodoAtual.nome] || 0);
-    }, 0);
+    .filter((m) => m.tipo === "entrada")
+    .reduce((soma, m) => soma + (metodos[m.nome] || 0), 0);
 
   const somaSaidas = tabelaMetodos
-    .filter((metodo) => metodo.tipo === "saida")
-    .reduce((acumulador, metodoAtual) => {
-      return acumulador + (metodos[metodoAtual.nome] || 0);
-    }, 0);
+    .filter((m) => m.tipo === "saida")
+    .reduce((soma, m) => soma + (metodos[m.nome] || 0), 0);
 
   const saldo = somaEntradas - somaSaidas;
+  const fundoSeguinte = (metodos["Cédulas"] || 0) + (metodos["Moedas"] || 0);
 
+  // ─── Handler de salvar ────────────────────────────────────────────────────
   async function handleSalvar() {
     try {
       const confirma = window.confirm(
@@ -87,57 +114,83 @@ const Lancamento = () => {
       });
 
       if (!resposta.ok) {
-        console.error("Erro do servidor: ", resposta.status);
+        console.error("Erro do servidor:", resposta.status);
         return;
       }
 
-      console.log("Salvo com sucesso!");
-      navigate("/fechamentos");
+      navigate("/Fechamentos");
     } catch (error) {
-      return console.error("Erro ao salvar transação", error);
+      console.error("Erro ao salvar transação:", error);
     }
   }
 
+  // ─── JSX ──────────────────────────────────────────────────────────────────
   return (
     <div className="grid w-full grid-cols-1 gap-4 p-2 lg:grid-cols-4">
-      {/* lista de inputs dos métodos */}
+      {/* Formulário de lançamento */}
       <div className="rounded-xl bg-gray-800 p-4 lg:col-span-3">
+        {/* Cabeçalho com título e seletor de data */}
         <nav className="mb-4 flex flex-col items-center justify-between gap-4 md:flex-row">
-          <span className="font-bold">Lançamento</span>
-
+          <span className="text-lg font-bold">Lançamento</span>
           <input
             type="date"
             className="rounded-lg bg-gray-300 p-2 text-slate-900 outline-none"
             value={data}
             onChange={(e) => setData(e.target.value)}
           />
-          <span className="font-bold">{formataData(data)}</span>
         </nav>
 
-        {Object.entries(metodos).map(([nomeMetodo, valor]) => (
-          <div key={nomeMetodo}>
-            <label htmlFor={nomeMetodo}>{nomeMetodo}</label>
-            <input
-              id={nomeMetodo}
-              type="number"
-              placeholder="R$ 0,00"
-              value={valor}
-              onChange={(e) => {
-                setMetodos({
-                  ...metodos,
-                  [nomeMetodo]: parseFloat(e.target.value) || 0,
-                });
-                console.log(metodos);
-              }}
-            />
-          </div>
-        ))}
-        <BotaoAcao onClick={handleSalvar}>Salvar</BotaoAcao>
+        {/* Lista de inputs por método */}
+        {Object.entries(metodos).map(([nomeMetodo, valor]) => {
+          const metodoInfo = tabelaMetodos.find((m) => m.nome === nomeMetodo);
+          return (
+            <div
+              key={nomeMetodo}
+              className="flex items-center justify-between border-b border-gray-700 py-2"
+            >
+              <div className="flex items-center gap-2">
+                <span
+                  className={`h-2 w-2 rounded-full ${
+                    metodoInfo?.tipo === "entrada"
+                      ? "bg-green-400"
+                      : "bg-red-400"
+                  }`}
+                />
+                <label
+                  htmlFor={nomeMetodo}
+                  className="text-md w-40 font-semibold"
+                >
+                  {nomeMetodo}
+                </label>
+              </div>
+              <input
+                id={nomeMetodo}
+                type="number"
+                value={valor}
+                onChange={(e) =>
+                  setMetodos({
+                    ...metodos,
+                    [nomeMetodo]: parseFloat(e.target.value) || 0,
+                  })
+                }
+                className="w-36 rounded-md bg-gray-600 p-2 text-right outline-none focus:ring-2 focus:ring-blue-400"
+              />
+            </div>
+          );
+        })}
+
+        <div className="mt-4">
+          <BotaoAcao onClick={handleSalvar}>Salvar</BotaoAcao>
+        </div>
       </div>
+
+      {/* Painel de resumo */}
       <Resumo
         somaEntradas={somaEntradas}
         somaSaidas={somaSaidas}
         somaSaldo={saldo}
+        fundoCaixa={fundoCaixa}
+        fundoSeguinte={fundoSeguinte}
       />
     </div>
   );
