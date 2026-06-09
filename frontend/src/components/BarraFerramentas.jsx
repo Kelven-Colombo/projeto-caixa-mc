@@ -8,6 +8,7 @@ const BarraFerramentas = ({
   dataFinal,
   setDataFinal,
   selecionados,
+  onExcluirSelecionados
 }) => {
 
   const navigate = useNavigate();
@@ -35,7 +36,7 @@ const BarraFerramentas = ({
           <span className="font-bold">Selecionados: {selecionados.length}</span>
           <button
             className="hover:cursor-pointer"
-            onClick={() => alert("Tem certeza que deseja excliur a seleção?")}
+            onClick={onExcluirSelecionados}
           >
             ❌
           </button>

@@ -31,6 +31,19 @@ router.put("/transacoes/:id", async (req, res) => {
   }
 });
 
+router.delete("/fechamentos/:data", async (req, res) => {
+  try {
+    const { data } = req.params;
+
+    await getDb().run(`DELETE FROM transacoes WHERE data = ?`, data);
+
+    res.status(200).json({ mensagem: "Fechamento deletado com sucesso!" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ erro: "Erro ao deletar fechamento." });
+  }
+});
+
 router.delete("/transacoes/:id", async (req, res) => {
   try {
     const id = req.params.id;
@@ -80,7 +93,7 @@ router.get("/fechamentos", async (req, res) => {
         SUM(CASE WHEN m.tipo = 'saida' THEN t.valor ELSE 0 END) AS saldo
       FROM transacoes t 
       JOIN metodos_pagamento m ON t.metodo_id = m.id
-      group by t.data`
+      group by t.data`,
     );
     res
       .status(200)
@@ -90,7 +103,6 @@ router.get("/fechamentos", async (req, res) => {
     res.status(500).json({ erro: "Erro ao gerar fechamentos." });
   }
 });
-
 
 router.get("/transacoes/:id", async (req, res) => {
   try {
@@ -106,9 +118,10 @@ router.get("/transacoes/:id", async (req, res) => {
     if (!transacao) {
       return res.status(404).json({ mensagem: "Transação não encontrada" });
     } else {
-      return res.status(200).json({ mensagem: "Aqui está sua transação: ", transacao });
+      return res
+        .status(200)
+        .json({ mensagem: "Aqui está sua transação: ", transacao });
     }
-    
   } catch (error) {
     return res.status(500).json({ erro: error.message });
   }

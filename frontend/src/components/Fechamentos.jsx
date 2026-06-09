@@ -4,35 +4,54 @@ import CabecalhoTabela from "./CabecalhoTabela.jsx";
 import LinhaTabela from "./LinhaTabela.jsx";
 import Resumo from "./Resumo.jsx";
 
-// dados
 const Fechamentos = () => {
-
-  //Cria o estado(memória) que vai guardar os dados que chegam da requisição
+  // ─── Estados ─────────────────────────────────────────────────────────────
   const [fechamentos, setFechamentos] = useState([]);
-  //Faz a requisição
-  useEffect(() => {
-    async function carregarFechamentos() {
-      const resposta = await fetch("http://localhost:3000/fechamentos");
-      const dados = await resposta.json();
-      setFechamentos(dados.fechamentos);
-    }
-    carregarFechamentos();
-  }, []);
-
-  // ESTADOS
-  // checkbox
   const [selecionados, setSelecionados] = useState([]);
-
-  // date
   const [dataInicial, setDataInicial] = useState("");
   const [dataFinal, setDataFinal] = useState("");
 
-  //hook
+  // ─── Carregamento de dados ────────────────────────────────────────────────
+  async function carregarFechamentos() {
+    const resposta = await fetch("http://localhost:3000/fechamentos");
+    const dados = await resposta.json();
+    setFechamentos(dados.fechamentos);
+  }
+
+  useEffect(() => {
+    carregarFechamentos();
+  }, []);
+
+  // ─── Limpa seleção ao mudar filtro de data ────────────────────────────────
   useEffect(() => {
     setSelecionados([]);
   }, [dataInicial, dataFinal]);
 
-  // lógica de atualização da seção Resumo
+  // ─── Handler: excluir fechamentos selecionados ────────────────────────────
+  async function handleExcluirSelecionados() {
+    const confirma = window.confirm(
+      `Tem certeza que deseja excluir ${selecionados.length} fechamento(s)?`,
+    );
+    if (!confirma) return;
+
+    try {
+      // Deleta cada data selecionada em paralelo
+      await Promise.all(
+        selecionados.map((data) =>
+          fetch(`http://localhost:3000/fechamentos/${data}`, {
+            method: "DELETE",
+          }),
+        ),
+      );
+
+      setSelecionados([]);
+      carregarFechamentos();
+    } catch (error) {
+      console.error("Erro ao excluir fechamentos:", error);
+    }
+  }
+
+  // ─── Lógica de filtro e cálculos do resumo ────────────────────────────────
   const fechamentosFiltrados = fechamentos.filter((fechamento) => {
     if (dataInicial && fechamento.data < dataInicial) return false;
     if (dataFinal && fechamento.data > dataFinal) return false;
@@ -41,37 +60,30 @@ const Fechamentos = () => {
 
   const listaResumo =
     selecionados.length > 0
-      ? fechamentosFiltrados.filter((fechamento) =>
-          selecionados.includes(fechamento.data),
-        )
+      ? fechamentosFiltrados.filter((f) => selecionados.includes(f.data))
       : fechamentosFiltrados;
 
-  let somaEntradas = listaResumo.reduce((soma, valorAtual) => {
-    return soma + valorAtual.total_entradas;
-  }, 0);
+  const somaEntradas = listaResumo.reduce(
+    (soma, f) => soma + f.total_entradas,
+    0,
+  );
+  const somaSaidas = listaResumo.reduce((soma, f) => soma + f.total_saidas, 0);
+  const somaSaldo = listaResumo.reduce((soma, f) => soma + f.saldo, 0);
 
-  let somaSaidas = listaResumo.reduce((soma, valorAtual) => {
-    return soma + valorAtual.total_saidas;
-  }, 0);
-
-  let somaSaldo = listaResumo.reduce((soma, valorAtual) => {
-    return soma + valorAtual.saldo;
-  }, 0);
-
+  // ─── JSX ──────────────────────────────────────────────────────────────────
   return (
     <div className="grid w-full grid-cols-1 gap-4 p-2 lg:grid-cols-4">
-      {/* lista */}
+      {/* Tabela de fechamentos */}
       <div className="rounded-xl bg-gray-800 p-4 lg:col-span-3">
-        {/* Barra de ferramentas */}
         <BarraFerramentas
           dataInicial={dataInicial}
           setDataInicial={setDataInicial}
           dataFinal={dataFinal}
           setDataFinal={setDataFinal}
           selecionados={selecionados}
-        ></BarraFerramentas>
+          onExcluirSelecionados={handleExcluirSelecionados}
+        />
 
-        {/* Tabela Lista */}
         <div className="overflow-x-auto">
           <table className="w-full min-w-max border-separate border-spacing-0 text-left">
             <thead className="text-gray-200">
@@ -94,12 +106,13 @@ const Fechamentos = () => {
           </table>
         </div>
       </div>
-      {/* Resumo */}
+
+      {/* Painel de resumo */}
       <Resumo
         somaEntradas={somaEntradas}
         somaSaidas={somaSaidas}
         somaSaldo={somaSaldo}
-      />{" "}
+      />
     </div>
   );
 };
