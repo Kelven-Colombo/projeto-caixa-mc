@@ -17,29 +17,31 @@ const BarraFerramentas = ({
   return (
     <nav className="mb-4 flex flex-col items-center justify-between gap-4 md:flex-row">
       <div className="flex items-center gap-4">
-        <span className="font-bold">De:</span>
-        <input
-          type="date"
-          className="rounded-lg bg-gray-300 p-2 text-slate-900 outline-none"
-          value={dataInicial}
-          onChange={(e) => setDataInicial(e.target.value)}
-        />
-        <span className="font-bold">Até:</span>
-        <input
-          type="date"
-          className="rounded-lg bg-gray-300 p-2 text-slate-900 outline-none"
-          value={dataFinal}
-          onChange={(e) => setDataFinal(e.target.value)}
-        />
-      </div>
+        <div className="flex items-center gap-4">
+          <span className="font-bold">De:</span>
+          <input
+            type="date"
+            className="rounded-lg bg-gray-300 p-2 text-slate-900 outline-none"
+            value={dataInicial}
+            onChange={(e) => setDataInicial(e.target.value)}
+          />
+          <span className="font-bold">Até:</span>
+          <input
+            type="date"
+            className="rounded-lg bg-gray-300 p-2 text-slate-900 outline-none"
+            value={dataFinal}
+            onChange={(e) => setDataFinal(e.target.value)}
+          />
+        </div>
 
-      <div className="mb-2 flex justify-end">
-        <button
-          onClick={() => setOrdem(ordem === "desc" ? "asc" : "desc")}
-          className="flex cursor-pointer items-center gap-1 rounded-lg bg-gray-700 px-3 py-1 text-sm hover:bg-gray-600"
-        >
-          Data {ordem === "desc" ? "↓" : "↑"}
-        </button>
+        <div className="mb-2 flex justify-end">
+          <button
+            onClick={() => setOrdem(ordem === "desc" ? "asc" : "desc")}
+            className="flex cursor-pointer items-center gap-1 rounded-lg bg-gray-700 px-3 py-1 text-sm hover:bg-gray-600"
+          >
+            Ordenar data {ordem === "desc" ? "↓" : "↑"}
+          </button>
+        </div>
       </div>
 
       {selecionados.length > 0 && (

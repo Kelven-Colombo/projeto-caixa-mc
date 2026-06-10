@@ -23,8 +23,7 @@ const CabecalhoTabela = ({ fechamentosFiltrados, selecionados, setSelecionados }
       <th className="bg-gray-700 p-3">Data</th>
       <th className="bg-gray-700 p-3">Entradas</th>
       <th className="bg-gray-700 p-3">Saídas</th>
-      <th className="bg-gray-700 p-3">Saldo</th>
-      <th className="w-12 rounded-tr-lg bg-gray-700 p-3"></th>
+      <th className="rounded-tr-lg bg-gray-700 p-3">Saldo</th>
     </tr>
   );
 };

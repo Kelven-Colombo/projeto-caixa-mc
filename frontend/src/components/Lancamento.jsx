@@ -86,7 +86,7 @@ const Lancamento = () => {
     }
     carregarTransacoesExistentes();
   }, [data, tabelaMetodos, fundoCaixa]);
-  
+
   // ─── Cálculos do resumo ───────────────────────────────────────────────────
   const somaEntradas = tabelaMetodos
     .filter((m) => m.tipo === "entrada")

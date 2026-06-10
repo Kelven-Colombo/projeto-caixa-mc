@@ -36,9 +36,6 @@ const LinhaTabela = ({ fechamento, selecionados, setSelecionados }) => {
       <td className="p-3">{formataReal.format(fechamento.total_entradas)}</td>
       <td className="p-3">{formataReal.format(fechamento.total_saidas)}</td>
       <td className="p-3">{formataReal.format(fechamento.saldo)}</td>
-      <td className="p-3">
-        <button className="text-xl font-bold hover:cursor-pointer">⋮</button>
-      </td>
     </tr>
   );
 };
