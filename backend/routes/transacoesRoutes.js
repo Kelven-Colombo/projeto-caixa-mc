@@ -1,5 +1,5 @@
 import express from "express";
-import { getDb } from "./database.js";
+import { getDb } from "../database/database.js";
 
 const router = express.Router();
 

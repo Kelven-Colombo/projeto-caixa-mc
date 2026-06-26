@@ -9,8 +9,22 @@ Projeto de Extensão Universitária — Análise e Desenvolvimento de Sistemas (
 ## ✨ Funcionalidades
 
 - **Fechamentos:** histórico de fechamentos diários com filtro por período, ordenação por data e painel de resumo financeiro (entradas, saídas, saldo)
+
+## Tela de Fechamentos
+![Tela de Fechamentos](docs/fechamentos.png)
+
+
+
 - **Lançamento:** formulário dinâmico com campos por método de pagamento, indicadores visuais de entrada/saída, resumo em tempo real e cálculo automático do Fundo de Caixa com base no dia anterior
+
+## Tela de Lançamento
+![Tela de Lançamento](docs/lancamento.png)
+
 - **Configurações:** gerenciamento de métodos de pagamento (adicionar, editar, desativar)
+
+## Tela de Configurações
+![Tela de Configurações](docs/configuracoes.png)
+
 
 ---
 

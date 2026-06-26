@@ -1,8 +1,8 @@
 import express from "express";
 import cors from "cors";
-import { iniciarBanco } from "./database.js";
-import transacoesRoutes from "./transacoesRoutes.js";
-import metodosRoutes from "./metodosRoutes.js";
+import { iniciarBanco } from "./database/database.js";
+import transacoesRoutes from "./routes/transacoesRoutes.js";
+import metodosRoutes from "./routes/metodosRoutes.js";
 
 const app = express();
 app.use(cors());

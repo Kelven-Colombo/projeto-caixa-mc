@@ -1,5 +1,5 @@
 import express from "express";
-import { getDb } from "./database.js";
+import { getDb } from "../database/database.js";
 
 const router = express.Router();
 
@@ -107,7 +107,7 @@ router.post("/metodos", async (req, res) => {
         .status(200)
         .json({ mensagem: "Método reativado com sucesso!" });
     }
-    
+
     // Adiciona novo método normalmente
     await getDb().run(
       "INSERT INTO metodos_pagamento (nome, tipo) VALUES (?, ?)",
